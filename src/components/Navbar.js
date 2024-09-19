@@ -1,38 +1,92 @@
 import styled from "styled-components";
+import { auth, googleProvider } from "../config/firebase";
+import { signInWithPopup, signOut } from "firebase/auth";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setUserLoginDetails,
+  setSignOutState,
+  selectUserName,
+  selectUserPhoto,
+} from "../config/userSlice";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const username = useSelector(selectUserName);
+  const userphoto = useSelector(selectUserPhoto);
+
+  const handleAuth = async () => {
+    try {
+      if (!username) {
+        const result = await signInWithPopup(auth, googleProvider);
+        setUser(result.user);
+        console.log(result);
+        navigate("/home");
+      } else if (username) {
+        await signOut(auth);
+        dispatch(setSignOutState())
+        navigate("/login");
+      }
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const setUser = (user) => {
+    dispatch(
+      setUserLoginDetails({
+        name: user.displayName,
+        email: user.email,
+        photo: user.photoURL,
+      })
+    );
+  };
+
   return (
     <Nav>
       <Logo>
-        <img src="/images/logo.svg" alt="disney+"/>
+        <img src="/images/logo.svg" alt="disney+" />
       </Logo>
-      <NavMenu>
-        <a href="/">
-          <img src="/images/home-icon.svg" alt="Home" />
-          <span>HOME</span>
-        </a>
-        <a href="/">
-          <img src="/images/search-icon.svg" alt="Home" />
-          <span>SEARCH</span>
-        </a>
-        <a href="/">
-          <img src="/images/watchlist-icon.svg" alt="Home" />
-          <span>WATCHLIST</span>
-        </a>
-        <a href="/">
-          <img src="/images/original-icon.svg" alt="Home" />
-          <span>ORIGINALS</span>
-        </a>
-        <a href="/">
-          <img src="/images/movie-icon.svg" alt="Home" />
-          <span>MOVIES</span>
-        </a>
-        <a href="/">
-          <img src="/images/series-icon.svg" alt="Home" />
-          <span>SERIES</span>
-        </a>
-      </NavMenu>
-      <Login>Login</Login>
+
+      {username ? (
+        <>
+          <NavMenu>
+            <a href="/">
+              <img src="/images/home-icon.svg" alt="Home" />
+              <span>HOME</span>
+            </a>
+            <a href="/">
+              <img src="/images/search-icon.svg" alt="Home" />
+              <span>SEARCH</span>
+            </a>
+            <a href="/">
+              <img src="/images/watchlist-icon.svg" alt="Home" />
+              <span>WATCHLIST</span>
+            </a>
+            <a href="/">
+              <img src="/images/original-icon.svg" alt="Home" />
+              <span>ORIGINALS</span>
+            </a>
+            <a href="/">
+              <img src="/images/movie-icon.svg" alt="Home" />
+              <span>MOVIES</span>
+            </a>
+            <a href="/">
+              <img src="/images/series-icon.svg" alt="Home" />
+              <span>SERIES</span>
+            </a>
+          </NavMenu>
+          <SignOut>
+            <UserImg src={userphoto} alt={username} />
+            <Dropdown>
+              <span onClick={handleAuth}>Sign out</span>
+            </Dropdown>
+          </SignOut>
+        </>
+      ) : (
+        <Login onClick={handleAuth}>Login</Login>
+      )}
     </Nav>
   );
 };
@@ -99,35 +153,32 @@ const NavMenu = styled.div`
       white-space: nowrap;
       position: relative;
 
-      
-    &:before {
-      background-color: rgb(249, 249, 249);
-      border-radius: 0px 0px 4px 4px;
-      bottom: -6px;
-      content: "";
-      height: 2px;
-      opacity: 0;
-      position: absolute;
-      right: 0px;
-      left: 0px;
-      transform-origin: left center;
-      transform: scaleX(0);
-      transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
-      visibility: hidden;
-      width: auto;
+      &:before {
+        background-color: rgb(249, 249, 249);
+        border-radius: 0px 0px 4px 4px;
+        bottom: -6px;
+        content: "";
+        height: 2px;
+        opacity: 0;
+        position: absolute;
+        right: 0px;
+        left: 0px;
+        transform-origin: left center;
+        transform: scaleX(0);
+        transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+        visibility: hidden;
+        width: auto;
+      }
     }
- }
 
- &:hover {
-    span:before {
+    &:hover {
+      span:before {
         transform: scaleX(1);
         visibility: visible;
-        opacity: 1 !important; 
+        opacity: 1 !important;
+      }
     }
   }
-}
-
-
 
   // @media (max-width: 768px) {
   // display: none
@@ -135,19 +186,61 @@ const NavMenu = styled.div`
 `;
 
 const Login = styled.a`
-background-color: rgba(0, 0, 0, 0.6);
-padding: 8px 16px;
-text-transform: uppercase;
-letter-spacing: 1.5px;
-border: 1px solid #f9f9f9;
-border-radius: 4px;
-transition: all 0.2s ease 0svb;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 8px 16px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border: 1px solid #f9f9f9;
+  border-radius: 4px;
+  transition: all 0.2s ease 0svb;
 
-&:hover {
+  &:hover {
     background-color: #f9f9f9;
     color: #000;
     border-color: transparent;
-}
+  }
+`;
+
+const UserImg = styled.img`
+  height: 100%;
+`;
+
+const Dropdown = styled.div`
+  position: absolute;
+  top: 48px;
+  right: 0px;
+  background: rgb(19, 19, 19);
+  border: 1px solid rgba(151, 151, 151, 0.34);
+  border-radius: 4px;
+  box-shadow: rgb(0, 0, 0 / 50%) 0px 0px 18px 0px;
+  padding: 10px;
+  font-size: 14px;
+  letter-spacing: 3px;
+  width: 100px;
+  opacity: 0;
+`;
+
+const SignOut = styled.div`
+  position: relative;
+  height: 48px;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  ${UserImg} {
+    border-radius: 50%;
+    height: 100%;
+    width: 100%;
+  }
+
+  &:hover {
+    ${Dropdown} {
+      opacity: 1;
+      transition-duration: 1s;
+    }
+  }
 `;
 
 export default Navbar;
