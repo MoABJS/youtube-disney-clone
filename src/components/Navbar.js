@@ -26,7 +26,7 @@ const Navbar = () => {
       } else if (username) {
         await signOut(auth);
         dispatch(setSignOutState())
-        navigate("/login");
+        navigate("/");
       }
     } catch (err) {
       alert(err.message);
@@ -180,9 +180,9 @@ const NavMenu = styled.div`
     }
   }
 
-  // @media (max-width: 768px) {
-  // display: none
-  // }
+   @media (max-width: 768px) {
+   display: none
+  }
 `;
 
 const Login = styled.a`
